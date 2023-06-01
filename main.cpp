@@ -117,7 +117,7 @@ int main(int argc, char* args[])
         ball->update(playerPaddle, opponentPaddle, playerScore, opponentScore);
         playerPaddle->handleInput();
         playerPaddle->update();
-        opponentPaddle->updateAI(ball);
+        opponentPaddle->update();
 
         SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(gRenderer);
