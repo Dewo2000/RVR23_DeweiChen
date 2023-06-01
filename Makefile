@@ -2,15 +2,16 @@ CC = g++
 CFLAGS = -std=c++17 -Wall -Wextra -pedantic
 LDFLAGS = -lSDL2 -lSDL2_ttf
 
-SOURCES = main.cpp Paddle.cpp Ball.cpp
-OBJECTS = $(SOURCES:.cpp=.o)
-EXECUTABLE = pong
+SOURCES = main.cpp main2.cpp Paddle.cpp Ball.cpp Server.cpp Client.cpp
+OBJECTS = Paddle.o Ball.o Client.o
+EXECUTABLE = pong server
 
 all: $(SOURCES) $(EXECUTABLE)
 
-$(EXECUTABLE): $(OBJECTS)
-	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
-
+pong: $(OBJECTS) main.o Client.o
+	$(CC) $(OBJECTS) main.o $(LDFLAGS) -o $@
+server: $(OBJECTS) main2.o Server.o
+	$(CC) $(OBJECTS) main2.o Server.o $(LDFLAGS) -o $@
 .cpp.o:
 	$(CC) $(CFLAGS) -c $< -o $@
 

@@ -3,6 +3,7 @@
 #include "Ball.h"
 #include "Paddle.h"
 #include <string>
+#include "Server.h"
 #include "Client.h"
 #include <iostream>
 const int SCREEN_WIDTH = 640;
@@ -106,6 +107,12 @@ int main(int argc, char* args[])
     Paddle* opponentPaddle= new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, false);
 
 
+    Server server(12345);
+    if (!server.start()) {
+        std::cout << "Failed to start server" << std::endl;
+        return -1;
+    }
+    
     Client client("127.0.0.1", 12345);
     if (!client.connectToServer()) {
         std::cout << "Failed to connect to server" << std::endl;
