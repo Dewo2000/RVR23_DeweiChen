@@ -4,7 +4,8 @@
 #include "Paddle.h"
 #include <string>
 #include "Client.h"
-#include <iostream>
+#include <thread>
+
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 const int PADDLE_WIDTH = 100;
@@ -89,6 +90,7 @@ void renderTexture(SDL_Texture* texture, int x, int y)
 
 int main(int argc, char* args[])
 {
+
     if (!init())
     {
         printf("Failed to initialize!\n");
@@ -105,12 +107,11 @@ int main(int argc, char* args[])
     Paddle* playerPaddle = new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, true);
     Paddle* opponentPaddle= new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, false);
 
+    Client cl(args[1],args[2]);
 
-    Client client("127.0.0.1", 12345);
-    if (!client.connectToServer()) {
-        std::cout << "Failed to connect to server" << std::endl;
-        return -1;
-    }
+    cl.login();
+    
+    std::thread net_thread([&cl](){ cl.net_thread(); });
 
     while (!quit)
     {
@@ -121,12 +122,13 @@ int main(int argc, char* args[])
                 quit = true;
             }
         }
-
         ball->update(playerPaddle, opponentPaddle, playerScore, opponentScore);
         playerPaddle->handleInput();
         playerPaddle->update();
         opponentPaddle->update();
-        client.sendPaddlePosition(playerPaddle->getY());
+        //cl.net_thread();
+        opponentPaddle->setPos(cl.getPaddlePos(),opponentPaddle->getY());
+        cl.input_thread(playerPaddle->getX(),playerPaddle->getY());
 
         SDL_SetRenderDrawColor(gRenderer, 0x00, 0x00, 0x00, 0xFF);
         SDL_RenderClear(gRenderer);
@@ -150,19 +152,11 @@ int main(int argc, char* args[])
         SDL_RenderPresent(gRenderer);
 
     }
-    client.disconnectFromServer();
     delete ball;
     delete playerPaddle;
     delete opponentPaddle;
     close();
     return 0;
 }
-
-
-
-
-
-
-
 
 

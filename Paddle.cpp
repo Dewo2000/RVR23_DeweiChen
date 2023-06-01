@@ -66,3 +66,29 @@ void Paddle::render(SDL_Renderer* renderer)
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderFillRect(renderer, &rect);
 }
+
+void Paddle::to_bin(){
+
+    alloc_data(sizeof(int)+sizeof(u_int8_t));
+
+    memset(_data, 0, sizeof(int)+sizeof(u_int8_t));
+    char *tmp = _data;
+    memcpy(tmp,&x,sizeof(int));
+    tmp+=sizeof(int);
+    memcpy(tmp,&type,sizeof(u_int8_t));
+
+}
+int Paddle::from_bin(char * bobj){
+    alloc_data(sizeof(int)+sizeof(u_int8_t));
+
+    memcpy(static_cast<void *>(_data), bobj, sizeof(int)+sizeof(u_int8_t));
+
+    char *tmp = _data;
+    memcpy(&x,tmp,sizeof(int));
+    tmp+=sizeof(int);
+    memcpy(&type,tmp,sizeof(u_int8_t));
+    return 0;
+}
+void Paddle::setPos(int x, int y){
+    this->x = x;
+}

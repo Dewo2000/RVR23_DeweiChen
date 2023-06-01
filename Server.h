@@ -1,17 +1,27 @@
-#ifndef SERVER_H
-#define SERVER_H
+#include "Socket.h"
+#include <string>
+#include <unistd.h>
+#include <memory>
+#include <vector>
 
-class Server {
+class PongServer
+{
 public:
-    Server(int port);
-    ~Server();
+    PongServer(const char * s, const char * p): socket(s, p)
+    {
+        socket.bind();
+    };
 
-    bool start();
-    void stop();
+    void do_messages();
 
 private:
-    int port;
-    int socketFD;
-};
 
-#endif
+    std::vector<std::unique_ptr<Socket>> players;
+    std::unique_ptr<Socket> player1;
+    std::unique_ptr<Socket> player2;
+    int player=0;
+    /**
+     * Socket del servidor
+     */
+    Socket socket;
+};

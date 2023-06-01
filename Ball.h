@@ -1,7 +1,6 @@
 #ifndef BALL_H
 #define BALL_H
 
-
 class SDL_Renderer;
 class Paddle;
 class Ball
@@ -16,7 +15,6 @@ public:
     int getY() const { return y; }
     int getWidth() const { return width; }
     int getHeight() const { return height; }
-
 private:
     int x;
     int y;
