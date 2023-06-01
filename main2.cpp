@@ -1,3 +1,4 @@
+
 #include <string>
 #include <thread>
 #include <SDL2/SDL.h>
@@ -99,17 +100,18 @@ void do_msg(int client_sd){
         char buffer[sizeof(int)];
         ssize_t bytes =  recv(client_sd,buffer,sizeof(int),0);
         if(bytes<=0)return;
-        opponentPaddle->from_bin(buffer);
+        playerPaddle->from_bin(buffer);
         }
 }
 void SendData(int sd){
     char buffer[sizeof(int)];
-    playerPaddle->to_bin();
-    memcpy(buffer,playerPaddle->data(),sizeof(int));
+    opponentPaddle->to_bin();
+    memcpy(buffer,opponentPaddle->data(),sizeof(int));
     send(sd,buffer,sizeof(int),0);
 }
 int main(int argc, char* args[])
 {
+    
     if (!init())
     {
         printf("Failed to initialize!\n");
@@ -123,39 +125,33 @@ int main(int argc, char* args[])
     int opponentScore = 0;
 
     Ball* ball = new Ball(SCREEN_WIDTH, SCREEN_HEIGHT);
-    playerPaddle = new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, true ,SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2 , SCREEN_HEIGHT - PADDLE_HEIGHT - 10);
-    opponentPaddle = new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, false,SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2 , 10);
+    playerPaddle = new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, false ,SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2 , SCREEN_HEIGHT - PADDLE_HEIGHT - 10);
+    opponentPaddle = new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, true,SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2 , 10);
 
-    struct addrinfo hints;
-    struct addrinfo *result;
+    const std::string ip = args[1];
+    const int port = std::stoi(args[2]);
 
-    memset(&hints,0,sizeof(struct addrinfo)); // inicializa a 0 hints
-
-    hints.ai_flags=AI_PASSIVE;
-    hints.ai_family=AF_INET; // ipv4
-    hints.ai_socktype=SOCK_STREAM;
-
-    int rc = getaddrinfo(args[1],args[2],&hints,&result);
-
-    if(rc!=0){
-        std::cerr<<"[addrinfo]: "<<gai_strerror(rc)<<"\n";
-        return -1;
+    // Crear el socket
+    int sd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sd < 0) {
+        std::cerr<<"No se pudo crear el socket\n";
     }
 
-    int sd=socket(result->ai_family,result->ai_socktype,result->ai_protocol);
+    // Especificar la dirección del servidor
+    sockaddr_in serv_addr;
+    memset(&serv_addr, 0, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr(ip.c_str());
+    serv_addr.sin_port = htons(port);
 
-    rc=bind(sd,result->ai_addr,result->ai_addrlen);
-    listen(sd,5);
+    // Conectar al servidor
+    if (connect(sd, (sockaddr*)&serv_addr, sizeof(serv_addr)) < 0) {
+        std::cerr<<"No se pudo conectar al servidor\n";
+    }
 
-    char host[NI_MAXHOST];
-    char serv[NI_MAXSERV];
-    struct sockaddr_storage client;
-    socklen_t client_len=sizeof(struct sockaddr_storage);
-    int client_sd = accept(sd,(struct sockaddr*)&client,&client_len);
-    getnameinfo((struct sockaddr *) &client,client_len,host,NI_MAXHOST,serv,NI_MAXSERV,NI_NUMERICHOST|NI_NUMERICSERV);
-    std::cout << "Conexión desde "<<host<<" "<<serv<<"\n";
+    std::cout << "Conectado al servidor." << std::endl;
     
-    std::thread ms(do_msg,client_sd);
+    std::thread ms(do_msg,sd);
 
     while (!quit)
     {
@@ -167,7 +163,7 @@ int main(int argc, char* args[])
             }
         }
         ball->update(playerPaddle, opponentPaddle, playerScore, opponentScore);
-        playerPaddle->handleInput();
+        opponentPaddle->handleInput();
         playerPaddle->update();
         opponentPaddle->update();
 
@@ -179,8 +175,8 @@ int main(int argc, char* args[])
         opponentPaddle->render(gRenderer);
 
         SDL_Color textColor = { 0xFF, 0xFF, 0xFF };
-        std::string playerScoreText = "Player: " + std::to_string(playerScore);
-        std::string opponentScoreText = "Opponent: " + std::to_string(opponentScore);
+        std::string playerScoreText = "Player: " + std::to_string(opponentScore);
+        std::string opponentScoreText = "Opponent: " + std::to_string(playerScore);
         SDL_Texture* playerScoreTexture = renderText(playerScoreText, textColor);
         SDL_Texture* opponentScoreTexture = renderText(opponentScoreText, textColor);
 
@@ -192,7 +188,7 @@ int main(int argc, char* args[])
 
         SDL_RenderPresent(gRenderer);
 
-        SendData(client_sd);
+        SendData(sd);
 
     }
     ms.detach();

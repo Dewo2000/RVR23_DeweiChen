@@ -2,7 +2,7 @@
 #include "Ball.h"
 #include <SDL2/SDL.h>
 
-Paddle::Paddle(int screenWidth, int screenHeight, int width, int height, bool isPlayer)
+Paddle::Paddle(int screenWidth, int screenHeight, int width, int height, bool isPlayer , int x ,int y)
 {
     this->screenWidth = screenWidth;
     this->screenHeight = screenHeight;
@@ -10,8 +10,10 @@ Paddle::Paddle(int screenWidth, int screenHeight, int width, int height, bool is
     this->height = height;
     this->isPlayer = isPlayer;
 
-    x = screenWidth / 2 - width / 2;
-    y = isPlayer ? screenHeight - height - 10 : 10;
+    this->x=x;
+    this->y=y;
+    // x = screenWidth / 2 - width / 2;
+    // y = isPlayer ? screenHeight - height - 10 : 10;
     velocity = 5;
 }
 
@@ -69,26 +71,16 @@ void Paddle::render(SDL_Renderer* renderer)
 
 void Paddle::to_bin(){
 
-    alloc_data(sizeof(int)+sizeof(u_int8_t));
-
-    memset(_data, 0, sizeof(int)+sizeof(u_int8_t));
+    alloc_data(sizeof(int));
+    memset(_data, 0, sizeof(int));
     char *tmp = _data;
     memcpy(tmp,&x,sizeof(int));
-    tmp+=sizeof(int);
-    memcpy(tmp,&type,sizeof(u_int8_t));
 
 }
 int Paddle::from_bin(char * bobj){
-    alloc_data(sizeof(int)+sizeof(u_int8_t));
-
-    memcpy(static_cast<void *>(_data), bobj, sizeof(int)+sizeof(u_int8_t));
-
+    alloc_data(sizeof(int));
+    memcpy(static_cast<void *>(_data), bobj, sizeof(int));
     char *tmp = _data;
     memcpy(&x,tmp,sizeof(int));
-    tmp+=sizeof(int);
-    memcpy(&type,tmp,sizeof(u_int8_t));
     return 0;
-}
-void Paddle::setPos(int x, int y){
-    this->x = x;
 }

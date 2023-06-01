@@ -10,15 +10,8 @@ class Paddle : public Serializable
 {
 public:
 
-    enum PaddleType
-    {
-        START  = 0,
-        PLAY = 1,
-        DONE  = 2
-    };
-
     Paddle(){   };
-    Paddle(int screenWidth, int screenHeight, int width, int height, bool isPlayer);
+    Paddle(int screenWidth, int screenHeight, int width, int height, bool isPlayer,int x ,int y);
 
     void handleInput();
     void update();
@@ -33,7 +26,6 @@ public:
     void to_bin();
     int from_bin(char * bobj);
 
-    uint8_t type;
 private:
     int x;
     int y;
