@@ -145,7 +145,7 @@ int main(int argc, char* args[])
     int sd=socket(result->ai_family,result->ai_socktype,result->ai_protocol);
 
     rc=bind(sd,result->ai_addr,result->ai_addrlen);
-    listen(sd,5);
+    listen(sd,1);
 
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
