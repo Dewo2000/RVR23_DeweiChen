@@ -11,23 +11,24 @@
 #include <time.h>
 #include <stdio.h>
 #include <arpa/inet.h>
-
+#include <unistd.h>
 const int SCREEN_WIDTH = 640;
 const int SCREEN_HEIGHT = 480;
 const int PADDLE_WIDTH = 100;
 const int PADDLE_HEIGHT = 10;
-const char* FONT_PATH = "arial.ttf";
+const char *FONT_PATH = "arial.ttf";
 const int FONT_SIZE = 24;
 
-SDL_Window* gWindow = nullptr;
-SDL_Renderer* gRenderer = nullptr;
-TTF_Font* gFont = nullptr;
-Paddle* playerPaddle = nullptr;
-Paddle* opponentPaddle = nullptr;
-Ball* ball = nullptr;
+SDL_Window *gWindow = nullptr;
+SDL_Renderer *gRenderer = nullptr;
+TTF_Font *gFont = nullptr;
+Paddle *playerPaddle = nullptr;
+Paddle *opponentPaddle = nullptr;
+Ball *ball = nullptr;
 bool init()
 {
-     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0)
+    {
         SDL_Log("Error al inicializar SDL: %s", SDL_GetError());
         return false;
     }
@@ -39,14 +40,16 @@ bool init()
 
     // Crear ventana
     gWindow = SDL_CreateWindow("Pong", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, 0);
-    if (!gWindow) {
+    if (!gWindow)
+    {
         SDL_Log("Error al crear la ventana: %s", SDL_GetError());
         return false;
     }
 
     // Crear renderizador
     gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (!gRenderer) {
+    if (!gRenderer)
+    {
         SDL_Log("Error al crear el renderizador: %s", SDL_GetError());
         return false;
     }
@@ -61,7 +64,7 @@ bool init()
     return true;
 }
 
-void close()
+void closeAll()
 {
     TTF_CloseFont(gFont);
     SDL_DestroyRenderer(gRenderer);
@@ -69,16 +72,16 @@ void close()
     TTF_Quit();
     SDL_Quit();
 }
-SDL_Texture* renderText(const std::string& text, SDL_Color color)
+SDL_Texture *renderText(const std::string &text, SDL_Color color)
 {
-    SDL_Surface* surface = TTF_RenderText_Solid(gFont, text.c_str(), color);
+    SDL_Surface *surface = TTF_RenderText_Solid(gFont, text.c_str(), color);
     if (surface == nullptr)
     {
         printf("Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError());
         return nullptr;
     }
 
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(gRenderer, surface);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(gRenderer, surface);
     if (texture == nullptr)
     {
         printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError());
@@ -89,29 +92,39 @@ SDL_Texture* renderText(const std::string& text, SDL_Color color)
     return texture;
 }
 
-void renderTexture(SDL_Texture* texture, int x, int y)
+void renderTexture(SDL_Texture *texture, int x, int y)
 {
-    SDL_Rect renderQuad = { x, y, 0, 0 };
+    SDL_Rect renderQuad = {x, y, 0, 0};
     SDL_QueryTexture(texture, nullptr, nullptr, &renderQuad.w, &renderQuad.h);
     SDL_RenderCopy(gRenderer, texture, nullptr, &renderQuad);
 }
-void do_msg(int client_sd){
-        while(true){
-        char buffer[sizeof(int)];
-        ssize_t bytes =  recv(client_sd,buffer,sizeof(int),0);
-        if(bytes<=0)return;
-        opponentPaddle->from_bin(buffer);
+void do_msg(int client_sd)
+{
+    while (true)
+    {
+        if (opponentPaddle != nullptr)
+        {
+            char buffer[sizeof(int)];
+            ssize_t bytes = recv(client_sd, buffer, sizeof(int), 0);
+            if (bytes <= 0)
+                return;
+            opponentPaddle->from_bin(buffer);
         }
+    }
 }
-void SendData(int sd){
-    char buffer[3*sizeof(int)];
-    playerPaddle->to_bin();
-    ball->to_bin();
-    memcpy(buffer,playerPaddle->data(),sizeof(int));
-    memcpy(buffer+sizeof(int),ball->data(),2*sizeof(int));
-    send(sd,buffer,3*sizeof(int),0);
+void SendData(int sd)
+{
+    if (playerPaddle != nullptr && ball != nullptr)
+    {
+        char buffer[3 * sizeof(int)];
+        playerPaddle->to_bin();
+        ball->to_bin();
+        memcpy(buffer, playerPaddle->data(), sizeof(int));
+        memcpy(buffer + sizeof(int), ball->data(), 2 * sizeof(int));
+        send(sd, buffer, 3 * sizeof(int), 0);
+    }
 }
-int main(int argc, char* args[])
+int main(int argc, char *args[])
 {
     if (!init())
     {
@@ -126,39 +139,40 @@ int main(int argc, char* args[])
     int opponentScore = 0;
 
     ball = new Ball(SCREEN_WIDTH, SCREEN_HEIGHT);
-    playerPaddle = new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, true ,SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2 , SCREEN_HEIGHT - PADDLE_HEIGHT - 10);
-    opponentPaddle = new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, false,SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2 , 10);
+    playerPaddle = new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, true, SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2, SCREEN_HEIGHT - PADDLE_HEIGHT - 10);
+    opponentPaddle = new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, false, SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2, 10);
 
     struct addrinfo hints;
     struct addrinfo *result;
 
-    memset(&hints,0,sizeof(struct addrinfo)); // inicializa a 0 hints
+    memset(&hints, 0, sizeof(struct addrinfo)); // inicializa a 0 hints
 
-    hints.ai_flags=AI_PASSIVE;
-    hints.ai_family=AF_INET; // ipv4
-    hints.ai_socktype=SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+    hints.ai_family = AF_INET; // ipv4
+    hints.ai_socktype = SOCK_STREAM;
 
-    int rc = getaddrinfo(args[1],args[2],&hints,&result);
+    int rc = getaddrinfo(args[1], args[2], &hints, &result);
 
-    if(rc!=0){
-        std::cerr<<"[addrinfo]: "<<gai_strerror(rc)<<"\n";
+    if (rc != 0)
+    {
+        std::cerr << "[addrinfo]: " << gai_strerror(rc) << "\n";
         return -1;
     }
 
-    int sd=socket(result->ai_family,result->ai_socktype,result->ai_protocol);
+    int sd = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 
-    rc=bind(sd,result->ai_addr,result->ai_addrlen);
-    listen(sd,1);
+    rc = bind(sd, result->ai_addr, result->ai_addrlen);
+    listen(sd, 1);
 
     char host[NI_MAXHOST];
     char serv[NI_MAXSERV];
     struct sockaddr_storage client;
-    socklen_t client_len=sizeof(struct sockaddr_storage);
-    int client_sd = accept(sd,(struct sockaddr*)&client,&client_len);
-    getnameinfo((struct sockaddr *) &client,client_len,host,NI_MAXHOST,serv,NI_MAXSERV,NI_NUMERICHOST|NI_NUMERICSERV);
-    std::cout << "Conexión desde "<<host<<" "<<serv<<"\n";
-    
-    std::thread ms(do_msg,client_sd);
+    socklen_t client_len = sizeof(struct sockaddr_storage);
+    int client_sd = accept(sd, (struct sockaddr *)&client, &client_len);
+    getnameinfo((struct sockaddr *)&client, client_len, host, NI_MAXHOST, serv, NI_MAXSERV, NI_NUMERICHOST | NI_NUMERICSERV);
+    std::cout << "Conexión desde " << host << " " << serv << "\n";
+
+    std::thread ms(do_msg, client_sd);
 
     while (!quit)
     {
@@ -181,29 +195,31 @@ int main(int argc, char* args[])
         playerPaddle->render(gRenderer);
         opponentPaddle->render(gRenderer);
 
-        SDL_Color textColor = { 0xFF, 0xFF, 0xFF };
+        SDL_Color textColor = {0xFF, 0xFF, 0xFF};
         std::string playerScoreText = "Player: " + std::to_string(playerScore);
         std::string opponentScoreText = "Opponent: " + std::to_string(opponentScore);
-        SDL_Texture* playerScoreTexture = renderText(playerScoreText, textColor);
-        SDL_Texture* opponentScoreTexture = renderText(opponentScoreText, textColor);
+        SDL_Texture *playerScoreTexture = renderText(playerScoreText, textColor);
+        SDL_Texture *opponentScoreTexture = renderText(opponentScoreText, textColor);
 
-        renderTexture(playerScoreTexture, 10, SCREEN_HEIGHT/2);
-        renderTexture(opponentScoreTexture, SCREEN_WIDTH -160, SCREEN_HEIGHT/2);
+        renderTexture(playerScoreTexture, 10, SCREEN_HEIGHT / 2);
+        renderTexture(opponentScoreTexture, SCREEN_WIDTH - 160, SCREEN_HEIGHT / 2);
 
         SDL_DestroyTexture(playerScoreTexture);
         SDL_DestroyTexture(opponentScoreTexture);
 
         SDL_RenderPresent(gRenderer);
 
-        SendData(client_sd);
-
+        if (!quit)
+            SendData(client_sd);
     }
     ms.detach();
+    close(sd);
     delete ball;
     delete playerPaddle;
     delete opponentPaddle;
-    close();
+    ball = nullptr;
+    playerPaddle = nullptr;
+    opponentPaddle = nullptr;
+    closeAll();
     return 0;
 }
-
-

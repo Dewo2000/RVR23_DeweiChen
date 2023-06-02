@@ -21,12 +21,11 @@
 class Serializable
 {
 public:
-
-    Serializable():_size(0), _data(0){};
+    Serializable() : _size(0), _data(0){};
 
     virtual ~Serializable()
     {
-        if ( _data != 0 )
+        if (_data != 0)
         {
             free(_data);
         }
@@ -43,14 +42,14 @@ public:
      *    @param data representación binaria del objeto
      *    @return 0 si éxito -1 en caso contrario
      */
-    virtual int from_bin(char * data) = 0;
+    virtual int from_bin(char *data) = 0;
 
     /**
      *  Devuelve un puntero al buffer interno con la representación del objeto.
      *  Debe inicializarse previamente via Serializable::to_bin()
      *    @return objeto serializado
      */
-    char * data()
+    char *data()
     {
         return _data;
     }
@@ -64,22 +63,21 @@ public:
     }
 
 protected:
-
     int32_t _size;
 
-    char *  _data;
+    char *_data;
 
     /**
      *  Reserva memoria para el buffer del objeto serializado
      */
     void alloc_data(int32_t data_size)
     {
-        if ( _data != 0 )
+        if (_data != 0)
         {
             free(_data);
         }
 
-        _data = (char *) malloc(data_size);
+        _data = (char *)malloc(data_size);
         _size = data_size;
     }
 };

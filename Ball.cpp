@@ -11,7 +11,7 @@ Ball::Ball(int screenWidth, int screenHeight)
 
     x = screenWidth / 2 - width / 2;
     y = screenHeight / 2 - height / 2;
-    velocityX = 2;
+                velocityX = 2;
     velocityY = 2;
 }
 
