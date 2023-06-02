@@ -2,7 +2,7 @@
 #define PADDLE_H
 
 #include "Serializable.h"
-#include <cstdint>
+
     
 class SDL_Renderer;
 class Ball;

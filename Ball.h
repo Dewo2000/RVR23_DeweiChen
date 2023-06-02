@@ -1,9 +1,11 @@
 #ifndef BALL_H
 #define BALL_H
 
+#include "Serializable.h"
+
 class SDL_Renderer;
 class Paddle;
-class Ball
+class Ball : public Serializable
 {
 public:
     Ball(int screenWidth, int screenHeight);
@@ -15,6 +17,8 @@ public:
     int getY() const { return y; }
     int getWidth() const { return width; }
     int getHeight() const { return height; }
+    void to_bin();
+    int from_bin(char * bobj);
 private:
     int x;
     int y;

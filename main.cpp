@@ -24,6 +24,7 @@ SDL_Renderer* gRenderer = nullptr;
 TTF_Font* gFont = nullptr;
 Paddle* playerPaddle = nullptr;
 Paddle* opponentPaddle = nullptr;
+Ball* ball = nullptr;
 bool init()
 {
      if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
@@ -103,10 +104,12 @@ void do_msg(int client_sd){
         }
 }
 void SendData(int sd){
-    char buffer[sizeof(int)];
+    char buffer[3*sizeof(int)];
     playerPaddle->to_bin();
+    ball->to_bin();
     memcpy(buffer,playerPaddle->data(),sizeof(int));
-    send(sd,buffer,sizeof(int),0);
+    memcpy(buffer+sizeof(int),ball->data(),2*sizeof(int));
+    send(sd,buffer,3*sizeof(int),0);
 }
 int main(int argc, char* args[])
 {
@@ -122,7 +125,7 @@ int main(int argc, char* args[])
     int playerScore = 0;
     int opponentScore = 0;
 
-    Ball* ball = new Ball(SCREEN_WIDTH, SCREEN_HEIGHT);
+    ball = new Ball(SCREEN_WIDTH, SCREEN_HEIGHT);
     playerPaddle = new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, true ,SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2 , SCREEN_HEIGHT - PADDLE_HEIGHT - 10);
     opponentPaddle = new Paddle(SCREEN_WIDTH, SCREEN_HEIGHT, PADDLE_WIDTH, PADDLE_HEIGHT, false,SCREEN_WIDTH / 2 - PADDLE_WIDTH / 2 , 10);
 

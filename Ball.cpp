@@ -55,3 +55,23 @@ void Ball::render(SDL_Renderer* renderer)
     SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
     SDL_RenderFillRect(renderer, &rect);
 }
+
+void Ball::to_bin(){
+
+    alloc_data(2*sizeof(int));
+    memset(_data, 0, sizeof(int));
+    char *tmp = _data;
+    memcpy(tmp,&x,sizeof(int));
+    tmp+=sizeof(int);
+    memcpy(tmp,&y,sizeof(int));
+
+}
+int Ball::from_bin(char * bobj){
+    alloc_data(2*sizeof(int));
+    memcpy(static_cast<void *>(_data), bobj, 2*sizeof(int));
+    char *tmp = _data;
+    memcpy(&x,tmp,sizeof(int));
+    tmp+=sizeof(int);
+    memcpy(&y,tmp,sizeof(int));
+    return 0;
+}
